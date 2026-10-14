@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Print "<agent> <session-id>" for the pane the plugin was invoked from, or
+# Print "<agent> <session-reference>" for the pane the plugin was invoked from, or
 # exit non-zero with the reason on stderr.
 #
 # The pane id comes from `focused_pane_id` in HERDR_PLUGIN_CONTEXT_JSON, never
@@ -8,11 +8,6 @@
 # context names the pane that was focused when the plugin was invoked, and it
 # is the same field for an action and for a pane command.
 #
-# Herdr's Claude Code and Codex integrations report the native session id from
-# a SessionStart hook (`pane.report_agent_session`), so `pane.get` carries
-# `agent_session: {source, agent, kind: "id", value}` for both. That pair is
-# all zoe needs. Nothing is guessed from the working directory; when Herdr has
-# no id, the caller says so.
 set -euo pipefail
 
 herdr="${HERDR_BIN_PATH:-herdr}"
@@ -40,6 +35,25 @@ case "$agent" in
   *)  echo "agent '$agent' in pane $pane_id is not one zoe reads (Claude Code, Codex, Pi, Prime Agent and Rusty)" >&2; exit 1 ;;
 esac
 
+if [ "$agent" = prime-agent ] && [ -z "$kind" ]; then
+  cwd=$(printf '%s' "$pane" | jq -r '.cwd // empty')
+  [ -n "$cwd" ] || { echo "Prime Agent pane has no cwd for session fallback" >&2; exit 1; }
+  sessions="$HOME/.prime/agent/sessions"
+  value=$(
+    if [ -d "$sessions" ]; then
+      while IFS= read -r path; do
+        header=$(head -n 1 "$path")
+        if printf '%s' "$header" | jq -e --arg cwd "$cwd" '.type == "session" and .version == 3 and .cwd == $cwd' >/dev/null 2>&1; then
+          printf '%s' "$path"
+          break
+        fi
+      done < <(find "$sessions" -maxdepth 1 -name '*.jsonl' -exec ls -t {} +)
+    fi
+  )
+  [ -n "$value" ] || { echo "no Prime Agent session header matches pane cwd: $cwd" >&2; exit 1; }
+  kind=path
+fi
+
 case "$kind" in
   id | path) ;;
   "") cat >&2 <<MSG
@@ -56,4 +70,5 @@ MSG
   *)  echo "Herdr reports a $kind for this $agent pane, and the plugin expects an id or path" >&2; exit 1 ;;
 esac
 
+[ -n "$value" ] || { echo "Herdr reports an empty session reference for pane $pane_id" >&2; exit 1; }
 printf '%s %s\n' "$agent" "$value"

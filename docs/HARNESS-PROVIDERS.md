@@ -28,3 +28,18 @@ tool_use_id. assistant.text is reasoning; input.admitted from a user is a
 prompt (input.queued is not another copy of it). provider.usage adds output
 tokens. Turn endings are not session endings. No new core facts were needed;
 the UI only gained exhaustive provider-mark arms.
+
+## Herdr and Prime Agent
+
+The bridge accepts id and path references for all supported agents, with no
+forced provider: file content wins even when Rusty is reported as pi. Missing
+Prime Agent references fall back to the most recently modified JSONL file
+whose v3 header cwd exactly matches the pane cwd. This is a heuristic when
+several sessions share a cwd; explicit reporting should replace it.
+
+Preferred external change (not landed here): in Prime Agent's Herdr
+integration, after creating or resuming a session, run
+herdr pane report-agent-session with agent prime-agent, kind path, and the
+session JSONL path. Clear/update that report on session switches. Verify the
+installed Herdr CLI argument schema before implementing it. Prime Agent is
+an independently installed product, not source in this repository.
