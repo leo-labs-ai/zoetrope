@@ -35,13 +35,13 @@ kind=$(printf  '%s' "$pane" | jq -r '.agent_session.kind  // empty')
 value=$(printf '%s' "$pane" | jq -r '.agent_session.value // empty')
 
 case "$agent" in
-  claude | codex) ;;
-  "") echo "pane $pane_id has no agent: focus a Claude Code or Codex pane" >&2; exit 1 ;;
-  *)  echo "agent '$agent' in pane $pane_id is not one zoe reads (Claude Code and Codex)" >&2; exit 1 ;;
+  claude | codex | pi | prime-agent | rusty) ;;
+  "") echo "pane $pane_id has no agent: focus a supported coding-agent pane" >&2; exit 1 ;;
+  *)  echo "agent '$agent' in pane $pane_id is not one zoe reads (Claude Code, Codex, Pi, Prime Agent and Rusty)" >&2; exit 1 ;;
 esac
 
 case "$kind" in
-  id) ;;
+  id | path) ;;
   "") cat >&2 <<MSG
 Herdr has no session id for this $agent pane.
 
@@ -53,7 +53,7 @@ Herdr has no session id for this $agent pane.
     herdr integration install $agent    (herdr integration status lists them)
 MSG
      exit 1 ;;
-  *)  echo "Herdr reports a $kind for this $agent pane, and the plugin expects an id" >&2; exit 1 ;;
+  *)  echo "Herdr reports a $kind for this $agent pane, and the plugin expects an id or path" >&2; exit 1 ;;
 esac
 
 printf '%s %s\n' "$agent" "$value"

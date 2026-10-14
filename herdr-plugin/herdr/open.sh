@@ -12,7 +12,8 @@ die() {
   exit 1
 }
 
-command -v zoe >/dev/null 2>&1 || die "zoe is not on PATH (brew install furkankly/tap/zoetrope, or cargo install zoetrope)"
+zoe="$root/bin/zoe"
+[ -x "$zoe" ] || die "fork zoe is missing; reinstall the plugin to build it"
 
 if ! target=$(bash "$root/herdr/resolve.sh" 2>&1); then
   die "$target"
@@ -20,5 +21,5 @@ fi
 
 # The pane's agent is running, so ride the live edge; space and the scrubber
 # go back.
-zoe --provider "${target%% *}" --follow "${target#* }" \
-  || die "zoe exited with status $? (zoe --provider ${target%% *} --follow ${target#* })"
+"$zoe" --follow "${target#* }" \
+  || die "zoe exited with status $? (zoe --follow ${target#* })"
