@@ -1,0 +1,8 @@
+{"type": "session", "version": 3, "id": "synthetic", "cwd": "/synthetic/project", "timestamp": "2026-10-14T12:00:00Z"}
+{"type": "model_change", "modelId": "synthetic-model", "timestamp": "2026-10-14T12:00:01Z"}
+{"type": "message", "id": "u", "message": {"role": "user", "content": [{"type": "text", "text": "Run the synthetic check."}]}, "timestamp": "2026-10-14T12:00:02Z"}
+{"type": "message", "id": "a", "message": {"role": "assistant", "model": "synthetic-model", "usage": {"output": 12}, "content": [{"type": "thinking", "thinking": "Check the fixture."}, {"type": "toolCall", "id": "ok", "name": "bash", "arguments": {"command": "echo synthetic"}}, {"type": "toolCall", "id": "err", "name": "read", "arguments": {"path": "/synthetic/missing"}}, {"type": "toolCall", "id": "pending", "name": "bash", "arguments": {"command": "sleep 1"}}]}, "timestamp": "2026-10-14T12:00:03Z"}
+{"type": "message", "message": {"role": "toolResult", "toolCallId": "ok", "toolName": "bash", "isError": false}, "timestamp": "2026-10-14T12:00:04Z"}
+{"type": "message", "message": {"role": "toolResult", "toolCallId": "err", "toolName": "read", "isError": true}, "timestamp": "2026-10-14T12:00:05Z"}
+{"type": "custom_message", "content": "Injected synthetic note", "timestamp": "2026-10-14T12:00:06Z"}
+{"type": "child_usage_attributed", "childUsage": {"output": 9}, "timestamp": "2026-10-14T12:00:07Z"}

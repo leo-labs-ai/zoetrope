@@ -73,6 +73,7 @@ use crate::fact::Statement;
 // browser frontend goes through `tailer::Bundle`.
 pub(crate) mod claude;
 pub(crate) mod codex;
+pub(crate) mod pi;
 pub(crate) mod summary;
 
 #[cfg(test)]
@@ -85,16 +86,18 @@ pub(crate) mod harness;
 pub enum Provider {
     Claude,
     Codex,
+    Pi,
 }
 
 impl Provider {
-    pub const ALL: [Provider; 2] = [Provider::Claude, Provider::Codex];
+    pub const ALL: [Provider; 3] = [Provider::Claude, Provider::Codex, Provider::Pi];
 
     /// The name on the command line and under `assets/`.
     pub fn name(self) -> &'static str {
         match self {
             Provider::Claude => "claude",
             Provider::Codex => "codex",
+            Provider::Pi => "pi",
         }
     }
 
@@ -116,6 +119,7 @@ impl Provider {
 pub enum Stream {
     Claude(claude::Stream),
     Codex(codex::Stream),
+    Pi(pi::Stream),
 }
 
 impl Stream {
@@ -125,6 +129,7 @@ impl Stream {
         match self {
             Stream::Claude(s) => s.push(line),
             Stream::Codex(s) => s.push(line),
+            Stream::Pi(s) => s.push(line),
         }
     }
 }
@@ -136,6 +141,9 @@ pub fn provider_of(head: &str) -> Option<Provider> {
     let line = head.lines().find(|l| !l.trim().is_empty())?;
     let v: serde_json::Value = serde_json::from_str(line.trim()).ok()?;
     let obj = v.as_object()?;
+    if pi::wire::is_header(&v) {
+        return Some(Provider::Pi);
+    }
     let kind = obj.get("type").and_then(|t| t.as_str());
     if kind == Some("session_meta") || obj.contains_key("payload") {
         return Some(Provider::Codex);
@@ -340,6 +348,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::all_paths(scope),
             Provider::Codex => codex::discovery::all_paths(scope),
+            Provider::Pi => pi::discovery::all_paths(scope),
         }
     }
 
@@ -348,6 +357,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::session_file(path),
             Provider::Codex => codex::discovery::session_file(path),
+            Provider::Pi => pi::discovery::session_file(path),
         }
     }
 
@@ -358,6 +368,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::related_paths(file),
             Provider::Codex => codex::discovery::related_paths(file),
+            Provider::Pi => pi::discovery::related_paths(file),
         }
     }
 
@@ -366,6 +377,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::project_key(cwd),
             Provider::Codex => codex::discovery::project_key(cwd),
+            Provider::Pi => pi::discovery::project_key(cwd),
         }
     }
 
@@ -376,6 +388,7 @@ impl Provider {
         match self {
             Provider::Claude => claude::discovery::classify_path(path, SystemTime::UNIX_EPOCH),
             Provider::Codex => codex::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
+            Provider::Pi => pi::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
         }
     }
 
@@ -384,6 +397,7 @@ impl Provider {
         match self {
             Provider::Claude => Stream::Claude(claude::discovery::stream_for(file)),
             Provider::Codex => Stream::Codex(codex::Stream::new()),
+            Provider::Pi => Stream::Pi(pi::Stream::new()),
         }
     }
 
@@ -393,7 +407,7 @@ impl Provider {
     pub fn sidecar(self, file: &SessionFile, text: &str) -> Option<Statement> {
         match self {
             Provider::Claude => claude::discovery::sidecar(file, text),
-            Provider::Codex => None,
+            Provider::Codex | Provider::Pi => None,
         }
     }
 }
@@ -570,7 +584,11 @@ mod tests {
             Some(Provider::Codex)
         );
         assert_eq!(
-            provider_of("\n{\"type\":\"response_item\",\"payload\":{\"type\":\"message\"}}\n"),
+            provider_of(
+                "
+{\"type\":\"response_item\",\"payload\":{\"type\":\"message\"}}
+"
+            ),
             Some(Provider::Codex)
         );
         assert_eq!(
