@@ -1,3 +1,5 @@
   ◌ [main] pi  (idle) — id=main
       model: synthetic-model
       tools: 3 (1✓ 1✗ 1⏳)   tokens: 12
+    ◌ [subagent] pi  (idle) — id=synthetic-child
+        tools: 1 (1✓ 0✗ 0⏳)   tokens: 0

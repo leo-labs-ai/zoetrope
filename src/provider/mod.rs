@@ -415,7 +415,7 @@ impl Provider {
         match self {
             Provider::Claude => Stream::Claude(claude::discovery::stream_for(file)),
             Provider::Codex => Stream::Codex(codex::Stream::new()),
-            Provider::Pi => Stream::Pi(pi::Stream::new()),
+            Provider::Pi => Stream::Pi(pi::discovery::stream_for(file)),
             Provider::Rusty => Stream::Rusty(rusty::discovery::stream_for(file)),
         }
     }

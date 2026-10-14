@@ -47,7 +47,27 @@ pub fn head(path: &Path) -> Option<String> {
 }
 
 pub fn session_file(path: &Path) -> Option<SessionFile> {
-    classify_head(path, &head(path)?, crate::provider::modified(path))
+    let mut file = classify_head(path, &head(path)?, crate::provider::modified(path))?;
+    let mut current = path.to_path_buf();
+    let mut seen = std::collections::HashSet::new();
+    while seen.insert(current.clone()) {
+        let v = super::wire::parse_line(&head(&current)?)?;
+        let Some(parent) = parent_path(&current, &v) else {
+            return Some(file);
+        };
+        let meta = super::wire::parse_line(&head(&parent)?)?;
+        if !super::wire::is_header(&meta) {
+            return None;
+        }
+        if current == path {
+            file.role = FileRole::Agent {
+                parent: meta["id"].as_str()?.into(),
+            };
+        }
+        file.session = meta["id"].as_str()?.into();
+        current = parent;
+    }
+    None
 }
 
 pub fn classify_head(path: &Path, head: &str, modified: SystemTime) -> Option<SessionFile> {
@@ -66,8 +86,45 @@ pub fn classify_head(path: &Path, head: &str, modified: SystemTime) -> Option<Se
     })
 }
 
-pub fn related_paths(_file: &SessionFile) -> Vec<PathBuf> {
-    Vec::new()
+pub fn related_paths(file: &SessionFile) -> Vec<PathBuf> {
+    let mut out = file.path.parent().map(|p| paths(p, 0)).unwrap_or_default();
+    let mut current = file.path.clone();
+    let mut seen = std::collections::HashSet::new();
+    while seen.insert(current.clone()) {
+        let Some(v) = head(&current).and_then(|s| super::wire::parse_line(&s)) else {
+            break;
+        };
+        let Some(parent) = parent_path(&current, &v) else {
+            break;
+        };
+        out.extend(parent.parent().map(|p| paths(p, 0)).unwrap_or_default());
+        out.push(parent.clone());
+        current = parent;
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn parent_path(path: &Path, v: &serde_json::Value) -> Option<PathBuf> {
+    let parent = PathBuf::from(v["parentSession"].as_str()?);
+    if parent.is_absolute() {
+        Some(parent)
+    } else {
+        Some(path.parent()?.join(parent))
+    }
+}
+
+pub fn stream_for(file: &SessionFile) -> super::Stream {
+    let parent = match &file.role {
+        FileRole::Agent { parent } => Some(if parent == &file.session {
+            "main".into()
+        } else {
+            parent.clone()
+        }),
+        _ => None,
+    };
+    super::Stream::for_file(parent)
 }
 
 pub fn project_key(cwd: &Path) -> String {

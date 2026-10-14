@@ -8,11 +8,17 @@ pub mod wire;
 #[derive(Debug, Clone, Default)]
 pub struct Stream {
     adopted: bool,
+    owner: String,
+    parent: Option<String>,
 }
 
 impl Stream {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn for_file(parent: Option<String>) -> Self {
+        Self {
+            adopted: false,
+            owner: "main".into(),
+            parent,
+        }
     }
 
     pub fn push(&mut self, line: &str) -> Option<Statement> {
@@ -26,9 +32,16 @@ impl Stream {
                 return None;
             }
             self.adopted = true;
+            if self.parent.is_some() {
+                self.owner = v["id"].as_str()?.into();
+            }
             kinds.push(FactKind::Agent {
-                kind: AgentKind::Main,
-                parent: None,
+                kind: if self.parent.is_some() {
+                    AgentKind::Subagent
+                } else {
+                    AgentKind::Main
+                },
+                parent: self.parent.clone(),
                 agent_type: Some("pi".into()),
                 description: None,
                 spawned_by: None,
@@ -113,7 +126,7 @@ impl Stream {
             facts: kinds
                 .into_iter()
                 .map(|kind| Fact {
-                    agent: Some("main".into()),
+                    agent: Some(self.owner.clone()),
                     ts,
                     kind,
                 })
@@ -150,23 +163,25 @@ mod tests {
     #[test]
     fn conformance() {
         crate::provider::harness::conform("pi", "synthetic", || {
-            let mut s = Stream::new();
-            vec![
-                std::fs::read_to_string(
-                    crate::provider::harness::fixture_dir("pi")
+            let dir = crate::provider::harness::fixture_dir("pi").unwrap();
+            ["synthetic.jsonl", "synthetic-child.jsonl"]
+                .into_iter()
+                .map(|name| {
+                    let path = dir.join(name);
+                    let file = discovery::session_file(&path).unwrap();
+                    let mut stream = discovery::stream_for(&file);
+                    std::fs::read_to_string(path)
                         .unwrap()
-                        .join("synthetic.jsonl"),
-                )
-                .unwrap()
-                .lines()
-                .filter_map(|l| s.push(l))
-                .collect(),
-            ]
+                        .lines()
+                        .filter_map(|line| stream.push(line))
+                        .collect()
+                })
+                .collect()
         });
     }
     #[test]
     fn defensive() {
-        let mut s = Stream::new();
+        let mut s = Stream::for_file(None);
         assert!(s.push("broken").is_none());
         assert!(s.push(r#"{"type":"message"}"#).is_none());
     }
@@ -193,5 +208,19 @@ mod tests {
             discovery::classify_head(std::path::Path::new("x"), "{}", std::time::UNIX_EPOCH)
                 .is_none()
         );
+    }
+
+    #[test]
+    fn opens_from_a_linked_child() {
+        let Some(dir) = crate::provider::harness::fixture_dir("pi") else {
+            return;
+        };
+        let session = crate::provider::open(
+            &crate::provider::Target::Path(dir.join("synthetic-child.jsonl")),
+            None,
+        )
+        .unwrap();
+        assert_eq!(session.id, "synthetic");
+        assert_eq!(session.files.len(), 1);
     }
 }

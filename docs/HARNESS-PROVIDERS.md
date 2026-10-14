@@ -10,12 +10,19 @@ join toolResult messages by toolCallId; only recorded boolean isError values
 state an outcome. Custom messages and child_usage_attributed records are
 activity, not human prompts or duplicate token usage.
 
-A header's parentSession is a fork's source path, not proof of a spawned
-agent (observer and suggested-task forks also use it). Entries' parentId
-links transcript entries, not agents. Without an explicit subagent join,
-these sessions remain independent roots rather than inventing child nodes.
-Prime's child_usage_attributed targets usage attribution, not session
-parentage. Subagent protocols beyond these observed records are not modeled.
+A header's parentSession names the source file. Native discovery follows that
+chain to the root (cycle-safe) and joins linked files in the same session
+folder. The installed pi-subagents extension writes it for persisted children;
+other extensions use it for forks and observers. All linked nodes are therefore
+interactive subagents: parentage is recorded, but the field alone cannot prove
+spawn provenance or completion. In-memory children have no transcript to read.
+Custom session directories outside the parent's folder are not discovered from
+the root; opening the child directly follows its parent chain. Browser head-only
+classification currently treats Pi files as independent roots.
+
+Entries' parentId links transcript entries, not agents. Prime's
+child_usage_attributed has origin spawn_task and a target entry id, not a
+child session id. It is not sufficient to join a child transcript.
 
 ## Rusty
 

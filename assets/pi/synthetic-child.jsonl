@@ -1,0 +1,3 @@
+{"type": "session", "version": 3, "id": "synthetic-child", "parentSession": "synthetic.jsonl", "cwd": "/synthetic/project", "timestamp": "2026-10-14T12:00:04Z"}
+{"type": "message", "id": "child-message", "message": {"role": "assistant", "content": [{"type": "toolCall", "id": "child-call", "name": "bash", "arguments": {"command": "echo child"}}]}, "timestamp": "2026-10-14T12:00:05Z"}
+{"type": "message", "message": {"role": "toolResult", "toolCallId": "child-call", "isError": false}, "timestamp": "2026-10-14T12:00:06Z"}
