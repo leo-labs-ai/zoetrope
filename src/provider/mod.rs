@@ -74,6 +74,7 @@ use crate::fact::Statement;
 pub(crate) mod claude;
 pub(crate) mod codex;
 pub(crate) mod pi;
+pub(crate) mod rusty;
 pub(crate) mod summary;
 
 #[cfg(test)]
@@ -87,10 +88,16 @@ pub enum Provider {
     Claude,
     Codex,
     Pi,
+    Rusty,
 }
 
 impl Provider {
-    pub const ALL: [Provider; 3] = [Provider::Claude, Provider::Codex, Provider::Pi];
+    pub const ALL: [Provider; 4] = [
+        Provider::Claude,
+        Provider::Codex,
+        Provider::Pi,
+        Provider::Rusty,
+    ];
 
     /// The name on the command line and under `assets/`.
     pub fn name(self) -> &'static str {
@@ -98,6 +105,7 @@ impl Provider {
             Provider::Claude => "claude",
             Provider::Codex => "codex",
             Provider::Pi => "pi",
+            Provider::Rusty => "rusty",
         }
     }
 
@@ -120,6 +128,7 @@ pub enum Stream {
     Claude(claude::Stream),
     Codex(codex::Stream),
     Pi(pi::Stream),
+    Rusty(rusty::Stream),
 }
 
 impl Stream {
@@ -130,6 +139,7 @@ impl Stream {
             Stream::Claude(s) => s.push(line),
             Stream::Codex(s) => s.push(line),
             Stream::Pi(s) => s.push(line),
+            Stream::Rusty(s) => s.push(line),
         }
     }
 }
@@ -143,6 +153,9 @@ pub fn provider_of(head: &str) -> Option<Provider> {
     let obj = v.as_object()?;
     if pi::wire::is_header(&v) {
         return Some(Provider::Pi);
+    }
+    if rusty::wire::is_header(&v) {
+        return Some(Provider::Rusty);
     }
     let kind = obj.get("type").and_then(|t| t.as_str());
     if kind == Some("session_meta") || obj.contains_key("payload") {
@@ -349,6 +362,7 @@ impl Provider {
             Provider::Claude => claude::discovery::all_paths(scope),
             Provider::Codex => codex::discovery::all_paths(scope),
             Provider::Pi => pi::discovery::all_paths(scope),
+            Provider::Rusty => rusty::discovery::all_paths(scope),
         }
     }
 
@@ -358,6 +372,7 @@ impl Provider {
             Provider::Claude => claude::discovery::session_file(path),
             Provider::Codex => codex::discovery::session_file(path),
             Provider::Pi => pi::discovery::session_file(path),
+            Provider::Rusty => rusty::discovery::session_file(path),
         }
     }
 
@@ -369,6 +384,7 @@ impl Provider {
             Provider::Claude => claude::discovery::related_paths(file),
             Provider::Codex => codex::discovery::related_paths(file),
             Provider::Pi => pi::discovery::related_paths(file),
+            Provider::Rusty => rusty::discovery::related_paths(file),
         }
     }
 
@@ -378,6 +394,7 @@ impl Provider {
             Provider::Claude => claude::discovery::project_key(cwd),
             Provider::Codex => codex::discovery::project_key(cwd),
             Provider::Pi => pi::discovery::project_key(cwd),
+            Provider::Rusty => rusty::discovery::project_key(cwd),
         }
     }
 
@@ -389,6 +406,7 @@ impl Provider {
             Provider::Claude => claude::discovery::classify_path(path, SystemTime::UNIX_EPOCH),
             Provider::Codex => codex::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
             Provider::Pi => pi::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
+            Provider::Rusty => rusty::discovery::classify_head(path, head, SystemTime::UNIX_EPOCH),
         }
     }
 
@@ -398,6 +416,7 @@ impl Provider {
             Provider::Claude => Stream::Claude(claude::discovery::stream_for(file)),
             Provider::Codex => Stream::Codex(codex::Stream::new()),
             Provider::Pi => Stream::Pi(pi::Stream::new()),
+            Provider::Rusty => Stream::Rusty(rusty::discovery::stream_for(file)),
         }
     }
 
@@ -407,7 +426,7 @@ impl Provider {
     pub fn sidecar(self, file: &SessionFile, text: &str) -> Option<Statement> {
         match self {
             Provider::Claude => claude::discovery::sidecar(file, text),
-            Provider::Codex | Provider::Pi => None,
+            Provider::Codex | Provider::Pi | Provider::Rusty => None,
         }
     }
 }

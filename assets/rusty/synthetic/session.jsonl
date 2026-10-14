@@ -1,0 +1,7 @@
+{"v": 0, "seq": 1, "ts_ms": 1791979200000, "kind": "session.created", "data": {"model": "synthetic-model"}}
+{"v": 0, "seq": 2, "ts_ms": 1791979201000, "kind": "input.admitted", "data": {"source": "user", "text": "Run a synthetic child."}}
+{"v": 0, "seq": 3, "ts_ms": 1791979202000, "kind": "effect.intent", "data": {"tool_use_id": "call", "tool": "bash", "input": {"command": "echo synthetic"}}}
+{"v": 0, "seq": 4, "ts_ms": 1791979203000, "kind": "effect.outcome", "data": {"tool_use_id": "call", "status": "ok"}}
+{"v": 0, "seq": 5, "ts_ms": 1791979204000, "kind": "child.spawned", "data": {"child_id": "sub-child", "name": "synthetic child"}}
+{"v": 0, "seq": 6, "ts_ms": 1791979205000, "kind": "assistant.text", "data": {"text": "Synthetic result."}}
+{"v": 0, "seq": 7, "ts_ms": 1791979206000, "kind": "child.outcome", "data": {"child_id": "sub-child", "status": "completed"}}

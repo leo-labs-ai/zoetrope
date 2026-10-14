@@ -1,0 +1,5 @@
+{"v": 0, "seq": 1, "ts_ms": 1791979200000, "kind": "session.created", "data": {"model": "synthetic-model"}}
+{"v": 0, "seq": 2, "ts_ms": 1791979201000, "kind": "effect.intent", "data": {"tool_use_id": "child-call", "tool": "read", "input": {"path": "/synthetic/missing"}}}
+{"v": 0, "seq": 3, "ts_ms": 1791979202000, "kind": "effect.outcome", "data": {"tool_use_id": "child-call", "status": "error"}}
+{"v": 0, "seq": 4, "ts_ms": 1791979203000, "kind": "provider.usage", "data": {"usage": {"output_tokens": 8}}}
+{"v": 0, "seq": 5, "ts_ms": 1791979204000, "kind": "assistant.text", "data": {"text": "Synthetic failure."}}

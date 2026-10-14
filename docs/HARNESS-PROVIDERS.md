@@ -16,3 +16,15 @@ links transcript entries, not agents. Without an explicit subagent join,
 these sessions remain independent roots rather than inventing child nodes.
 Prime's child_usage_attributed targets usage attribution, not session
 parentage. Subagent protocols beyond these observed records are not modeled.
+
+## Rusty
+
+The first session.created event identifies the format. Session identity comes
+from the enclosing session directory; sub-*.jsonl logs can live directly in
+it or inside sub-* directories. The session's cwd sidecar supplies project
+identity. child.spawned states parentage and child.outcome states terminal
+status; child headers never guess a parent. effect.intent/outcome join by
+tool_use_id. assistant.text is reasoning; input.admitted from a user is a
+prompt (input.queued is not another copy of it). provider.usage adds output
+tokens. Turn endings are not session endings. No new core facts were needed;
+the UI only gained exhaustive provider-mark arms.

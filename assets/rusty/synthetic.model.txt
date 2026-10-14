@@ -1,0 +1,7 @@
+  ◌ [main] rusty  (idle) — id=main
+      model: synthetic-model
+      tools: 1 (1✓ 0✗ 0⏳)   tokens: 0
+    ✓ [subagent] rusty  (done) — id=sub-child
+        synthetic child
+        model: synthetic-model
+        tools: 1 (0✓ 1✗ 0⏳)   tokens: 8
