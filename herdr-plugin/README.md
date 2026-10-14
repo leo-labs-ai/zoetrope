@@ -3,14 +3,15 @@
 [Herdr](https://herdr.dev) runs coding agents in panes and knows which session
 each pane is running. This plugin asks it, then opens that session in `zoe` as
 a live flow graph, without you naming a file or an id. Claude Code and Codex
-panes both work.
+panes work, as do Pi, Prime Agent and Rusty.
 
 ## Installation
 
 ```bash
 herdr integration install claude          # and/or: herdr integration install codex
-herdr plugin install furkankly/zoetrope/herdr-plugin
-herdr plugin action invoke setup-keys --plugin furkankly.zoetrope
+herdr plugin install leo-labs-ai/zoetrope/herdr-plugin --ref feat/harness-providers
+# Optional, only after approving a keybinding change:
+# herdr plugin action invoke setup-keys --plugin furkankly.zoetrope
 ```
 
 **The integration** is what makes the rest possible. It adds a `SessionStart`
@@ -20,10 +21,10 @@ and the plugin has nothing to open. An agent already running when you install
 it never reports one, so start it again. `herdr integration status` lists what
 is installed.
 
-**The plugin install** checks that a `zoe` new enough to open a session by id
-is on `PATH`, and installs one with Homebrew or cargo when it is missing. An
-older `zoe` is reported with the upgrade commands, never replaced. `jq` is
-needed as well.
+**The plugin install** builds zoe from the fork checkout with Cargo and keeps
+it at herdr-plugin/bin/zoe. It never uses an upstream release or replaces a
+managed binary on PATH. Cargo and jq are required. A local plugin link needs
+bash herdr/ensure-zoe.sh run from the plugin directory first.
 
 **The key step** writes one marked block into your Herdr config, since plugins
 cannot ship keys in their manifest. It backs the file up first, never takes a
@@ -76,8 +77,10 @@ The pane says why and waits for you to press enter, rather than closing on you:
 | no agent in the pane | a line saying to focus an agent pane |
 | an agent zoetrope does not read | the same, naming the agent |
 
-There is no fallback through the working directory. Herdr knows the session, so
-the plugin uses it or says what it got instead.
+Pi and Rusty path references are passed directly to zoe for content detection.
+For Prime Agent only, a missing reference falls back to the newest session
+whose v3 header cwd matches the pane cwd. Multiple sessions in the same cwd
+make this ambiguous; explicit session reporting is preferred.
 
 ## Keys inside the graph
 

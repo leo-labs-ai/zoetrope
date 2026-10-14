@@ -1,18 +1,7 @@
 id = "furkankly.zoetrope"
 name = "zoetrope"
-# This versions the bridge in this directory, not zoetrope. The scripts here
-# launch `zoe`; the graph, and every improvement to it, arrives with the binary
-# through Homebrew and crates.io, on its own release schedule and without any
-# change here. So this number moves when these files move, and stays put
-# through a zoe release that leaves the command line alone.
-#
-# Herdr displays it and nothing reads it. Plugins that do keep it in step with
-# their tool have a reason to: their installer builds a release download URL
-# out of it. Nothing here downloads anything, so a mirrored number would be a
-# hand-edited label with no reader. The one version that gates an install is
-# min_herdr_version below; the one that describes what `zoe` must be able to do
-# lives in herdr/ensure-zoe.sh.
-version = "0.1.0"
+# The bridge builds and runs the fork checkout, independent of PATH.
+version = "0.2.0"
 description = "Watch the focused agent's session as a live flow graph."
 platforms = ["macos", "linux"]
 
@@ -23,7 +12,7 @@ platforms = ["macos", "linux"]
 min_herdr_version = "0.8.2"
 
 # `plugin install` runs this after the preview; `plugin link` does not. It only
-# checks for zoe, and installs it when missing.
+# builds the fork binary into this plugin directory.
 [[build]]
 command = ["bash", "herdr/ensure-zoe.sh"]
 

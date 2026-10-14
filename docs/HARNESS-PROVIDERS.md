@@ -43,3 +43,12 @@ herdr pane report-agent-session with agent prime-agent, kind path, and the
 session JSONL path. Clear/update that report on session switches. Verify the
 installed Herdr CLI argument schema before implementing it. Prime Agent is
 an independently installed product, not source in this repository.
+
+The installed Prime product is the Rust build at ~/.local/share/prime-agent
+(version 0.10.0), launched by ~/.local/bin/prime-agent. No editable Prime
+integration source was found in this checkout; do not patch its binary.
+The verified CLI shape for the proposed integration is:
+
+    herdr pane report-agent-session "$HERDR_PANE_ID" --source prime-agent --agent prime-agent --agent-session-path "$session_file"
+
+Invoke at session creation/resume/switch, only in a Herdr pane.

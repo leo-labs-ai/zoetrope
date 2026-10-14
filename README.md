@@ -41,9 +41,12 @@ Built on [ratatui](https://ratatui.rs) and [rataflow](https://github.com/furkank
 | [Claude Code](https://claude.com/claude-code) | `~/.claude/projects/` | ✓ | ✓ | ✓ sessions and subagents |
 | [Codex](https://openai.com/codex/) CLI and desktop app | `~/.codex/sessions/` | ✓ | ✓ | ✓ sessions and subagents |
 
+| Pi / pii / Prime Agent | ~/.pi/{vanilla-agent,agent,pii}/sessions/, ~/.prime/agent/sessions/ | ✓ | ✓ | ✓ |
+| Rusty | ~/.rusty/ | ✓ | ✓ | ✓ sessions and subagents |
+
 zoetrope reads a session from any of its files and tells the formats apart by
-content, so `zoe <file>` works for either, and `zoe <id>` finds a session by id
-across both.
+content, so `zoe <file>` works for any supported format, and `zoe <id>` finds a session by id
+across all providers.
 
 ![zoetrope replaying a Codex CLI session as a flow graph](https://raw.githubusercontent.com/furkankly/zoetrope/main/assets/zoetrope-codex.gif)
 

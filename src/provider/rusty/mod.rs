@@ -168,4 +168,22 @@ mod tests {
                 .collect()
         });
     }
+
+    #[test]
+    fn opens_from_a_child_and_rejects_malformed_records() {
+        let Some(dir) = crate::provider::harness::fixture_dir("rusty") else {
+            return;
+        };
+        let child = dir.join("synthetic/sub-child/sub-child.jsonl");
+        let session = crate::provider::open(&crate::provider::Target::Path(child), None).unwrap();
+        assert_eq!(session.id, "synthetic");
+        assert_eq!(session.files.len(), 1);
+        let mut stream = super::Stream::new("main".into());
+        assert!(stream.push("broken").is_none());
+        assert!(
+            stream
+                .push(r#"{"kind":"effect.outcome","data":{}}"#)
+                .is_none()
+        );
+    }
 }

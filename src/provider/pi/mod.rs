@@ -152,10 +152,15 @@ mod tests {
         crate::provider::harness::conform("pi", "synthetic", || {
             let mut s = Stream::new();
             vec![
-                include_str!("../../../assets/pi/synthetic.jsonl")
-                    .lines()
-                    .filter_map(|l| s.push(l))
-                    .collect(),
+                std::fs::read_to_string(
+                    crate::provider::harness::fixture_dir("pi")
+                        .unwrap()
+                        .join("synthetic.jsonl"),
+                )
+                .unwrap()
+                .lines()
+                .filter_map(|l| s.push(l))
+                .collect(),
             ]
         });
     }
