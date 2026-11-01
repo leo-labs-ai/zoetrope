@@ -238,6 +238,22 @@ mod tests {
     }
 
     #[test]
+    fn consume_preserves_split_utf8_and_skips_invalid_lines() {
+        let mut data = "hé🙂\r\n".as_bytes().to_vec();
+        data.extend_from_slice(b"invalid\xff\n \r\nafter\n");
+
+        for chunk_size in [1, 2, 3, data.len()] {
+            let mut state = TailState::default();
+            let mut lines = Vec::new();
+            for chunk in data.chunks(chunk_size) {
+                lines.extend(consume_bytes(&mut state, chunk));
+            }
+            assert_eq!(lines, ["hé🙂", "after"], "chunk size {chunk_size}");
+            assert!(state.partial.is_empty());
+        }
+    }
+
+    #[test]
     fn consume_tolerates_crlf() {
         let mut state = TailState::default();
         let out = consume_bytes(&mut state, b"{\"type\":\"user\"}\r\n");
